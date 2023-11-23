@@ -20,31 +20,84 @@ const MapaComponente = compose(
   const [seleccionado, setSeleccionado] = useState(null);
   const [map, setMap] = useState(null);
   const [selectedMarkerPosition, setSelectedMarkerPosition] = useState(null);
-
+  const [ambulanciasUpdate, setAmbulanciasUpdate] = useState([]);
   const handleInfoWindowClose = () => {
+    // Cerrar el InfoWindow
     setSeleccionado(null);
   };
+
   const handleMarkerClick = (index) => {
-    console.log('Index:', index);
-
     setSeleccionado(index);
-    setSelectedMarkerPosition(ambulanciasFiltradas[index]?.coordenadas);
-    props.onAmbulanciaSeleccionada(ambulanciasFiltradas[index]); // Pasa la información de la ambulancia seleccionada
-  }
-
+    props.onAmbulanciaSeleccionada(index);
+  };
+  const loader = new Loader({
+    apiKey: process.env.REACT_APP_NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
+    version: 'weekly',
+    libraries: ['geometry', 'places'],
+  });
   useEffect(() => {
-    // Filtrar las ambulancias cuando las coordenadas del usuario y las ambulancias estén disponibles
-    if (props.ubicacionUsuario && props.ambulancias.length > 0) {
-      const loader = new Loader({
-        apiKey: process.env.REACT_APP_NEXT_PUBLIC_GOOGLE_MAPS_API_KEY, // Reemplaza con tu propia clave de API
-        version: 'weekly',
-        libraries: ['geometry'],
-      });
+    const loadData = async () => {
+      if (props.ubicacionUsuario && props.ambulancias.length > 0) {
+        try {
+          const google = await loader.load();
+          const directionsService = new google.maps.DirectionsService();
 
-      loader
-        .load()
-        .then((google) => {
-          const filteredAmbulancias = props.ambulancias.filter((ambulancia) => {
+          const getDistanceAndDuration = (ambulancia) => {
+            return new Promise(async (resolve, reject) => {
+              const request = {
+                origin: new google.maps.LatLng(
+                  props.ubicacionUsuario.lat,
+                  props.ubicacionUsuario.lng
+                ),
+                destination: new google.maps.LatLng(
+                  ambulancia.coordenadas.lat,
+                  ambulancia.coordenadas.lng
+                ),
+                travelMode: google.maps.TravelMode.DRIVING,
+              };
+
+              await directionsService.route(request, (response, status) => {
+                if (status === 'OK') {
+                  const route = response.routes[0];
+                  const distance = route.legs[0].distance.text;
+                  const duration = route.legs[0].duration.text;
+
+                  resolve({ distance, duration });
+                } else {
+                  reject(new Error(`Error al obtener la ruta: ${status}`));
+                }
+              });
+            });
+          };
+
+          const updateAmbulanciasData = async () => {
+            const ambulanciasData = await Promise.all(
+              props.ambulancias.map(async (ambulancia) => {
+                try {
+                  const { distance, duration } = await getDistanceAndDuration(ambulancia);
+                  return {
+                    ...ambulancia,
+                    distanceAndDuration: { distance, duration },
+                  };
+                } catch (error) {
+                  console.error(`Error al obtener distancia y duración para ambulancia ${ambulancia.nombre}: ${error.message}`);
+                  return {
+                    ...ambulancia,
+                    distanceAndDuration: { distance: 'Error', duration: 'Error' },
+                  };
+                }
+              })
+            );
+            console.log(`ambulanciasData : ${JSON.stringify(ambulanciasData)}`)
+            setAmbulanciasFiltradas(ambulanciasData);
+            setAmbulanciasUpdate(ambulanciasData);
+          };
+
+          // Obtener la distancia y duración
+          await updateAmbulanciasData();
+
+          // Filtrar las ambulancias
+          const filteredAmbulancias = ambulanciasUpdate.filter((ambulancia) => {
             const distancia = google.maps.geometry.spherical.computeDistanceBetween(
               new google.maps.LatLng(props.ubicacionUsuario.lat, props.ubicacionUsuario.lng),
               new google.maps.LatLng(ambulancia.coordenadas.lat, ambulancia.coordenadas.lng)
@@ -52,14 +105,17 @@ const MapaComponente = compose(
 
             return distancia <= props.radioVisualizacion;
           });
-
+          console.log(`filteredAmbulancias : ${JSON.stringify(filteredAmbulancias)}`)
           setAmbulanciasFiltradas(filteredAmbulancias);
-        })
-        .catch((e) => {
+        } catch (e) {
           console.error('Error al cargar la API de Google Maps:', e);
-        });
-    }
-  }, [props.ubicacionUsuario, props.ambulancias, props.radioVisualizacion, props.onAmbulanciaSeleccionada]);
+        }
+      }
+    };
+
+    loadData();
+  }, [props.ubicacionUsuario, props.ambulancias, props.radioVisualizacion]);
+
 
   return (
     <GoogleMap
@@ -67,24 +123,23 @@ const MapaComponente = compose(
       defaultCenter={props.ubicacionUsuario || { lat: 0, lng: 0 }}
       ref={(map) => map && !map.hasOwnProperty('google') && setMap(map)}
     >
-      {/* Marcador para la ubicación del usuario en la solicitud */}
       {props.ubicacionUsuario && (
-        <Marker
-          position={props.ubicacionUsuario}
-          label="Afectado"
+        <Marker position={props.ubicacionUsuario} label="Afectado" />
+      )}
+      {props.ubicacionUsuario && (
+        <Circle
+          center={props.ubicacionUsuario}
+          radius={props.radioVisualizacion}
+          options={{
+            fillColor: '#007BFF',
+            fillOpacity: 0.3,
+            strokeColor: '#007BFF',
+            strokeOpacity: 0.5,
+            strokeWeight: 1,
+          }}
         />
       )}
-      <Circle
-        center={props.ubicacionUsuario}
-        radius={props.radioVisualizacion}
-        options={{
-          fillColor: '#007BFF',
-          fillOpacity: 0.3,
-          strokeColor: '#007BFF',
-          strokeOpacity: 0.5,
-          strokeWeight: 1,
-        }}
-      />
+
       {ambulanciasFiltradas &&
         ambulanciasFiltradas.map((ambulancia, index) => (
           <Marker
@@ -100,24 +155,23 @@ const MapaComponente = compose(
               strokeWeight: 2,
               strokeColor: 'black',
             }}
-          />
+          >
+            {seleccionado === index && (
+              <InfoWindow onCloseClick={handleInfoWindowClose}>
+                <div>
+                  <p>Categoría: {ambulancia.categoria || 'isNan'}</p>
+                  <p>Placa: {ambulancia.placa || 'isNan'}</p>
+                  <p>Distancia: {ambulancia.distanceAndDuration.distance || 'Calculando...'}</p>
+                  <p>Duración: {ambulancia.distanceAndDuration.duration || 'Calculando...'}</p>
+                </div>
+              </InfoWindow>
+            )}
+          </Marker>
         ))}
-      {/* Manejar InfoWindow */}
-      {seleccionado !== null && selectedMarkerPosition && (
-        <InfoWindow
-          position={selectedMarkerPosition}
-          onCloseClick={handleInfoWindowClose}
-        >
-          <div>
-            <p>Categoría: {ambulanciasFiltradas[seleccionado]?.categoria || 'isNan'}</p>
-            <p>Placa: {ambulanciasFiltradas[seleccionado]?.placa || 'isNan'}</p>
-            {/* Agrega más información según tus necesidades */}
-          </div>
-        </InfoWindow>
-      )}
     </GoogleMap>
   );
 });
+
 
 const MapaModal = ({ onAceptar, onRechazar, item }) => { //datosSolicitud
   const [ubicacionActual, setUbicacionActual] = useState(null);
@@ -137,23 +191,11 @@ const MapaModal = ({ onAceptar, onRechazar, item }) => { //datosSolicitud
   const handleAmbulanciaSeleccionada = (ambulancia) => {
     setAmbulanciaSeleccionada(ambulancia);
   };
-  const loader = new Loader({
-    apiKey: process.env.REACT_APP_NEXT_PUBLIC_GOOGLE_MAPS_API_KEY, // Reemplaza con tu propia clave de API
-    version: 'weekly',
-    libraries: ['geometry'],
-  });
   useEffect(() => {
     // Obtener la ubicación actual del dispositivo
     if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          setUbicacionActual({ lat: item.latScene, lng: item.lngScene });
-        },
-        (error) => {
-          console.error('Error al obtener la ubicación actual:', error);
-        }
-      );
+      setUbicacionActual({ lat: item.latScene, lng: item.lngScene });
+
     } else {
       console.error('Geolocalización no es compatible en este navegador.');
     }
@@ -161,17 +203,17 @@ const MapaModal = ({ onAceptar, onRechazar, item }) => { //datosSolicitud
 
   const handleAceptar = () => {
     // const response = api.patch('solicitud/')
-    if (!ambulanciaSeleccionada) {
+    if (ambulanciaSeleccionada ===null) {
       // Si no se ha seleccionado una ambulancia, establece el mensaje y no ejecutes onAceptar
       setSnackbarMessage('Seleccione una ambulancia disponible');
       setSnackbarOpen(true);
     } else {
       // Si se ha seleccionado una ambulancia, puedes realizar la lógica adicional aquí
-      // const response = await api.patch(`request/responder/${datosSolicitud.id}`,{
+      // const response = await api.patch(`request/responder/${item.nro}`,{
       //   "estado" : "Aceptado",
       // "ambulanciaid" : [ambulanciaSeleccionada.id]
       // })
-      console.log(` ambu selecc : ${ambulanciaSeleccionada}`)
+      console.log(` ambu selecc : ${JSON.stringify(ambulanciaSeleccionada)}`)
       console.log(` mensaje selecc : ${mensaje}`)
       onAceptar(); // Llama a la función onAceptar si es necesario
       setOpen(false); // Cierra el diálogo sin realizar ninguna acción
@@ -179,12 +221,12 @@ const MapaModal = ({ onAceptar, onRechazar, item }) => { //datosSolicitud
 
   };
   const handleRechazar = () => {
-    // const response = api.patch('requests/responder/${datosSolicitud.id',
+    // const response = api.patch('requests/responder/${item.nro',
     // {
     //   "Estado" : "Rechazado"
     // }
     // )
-    console.log(` ambu selecc : ${ambulanciaSeleccionada}`)
+    console.log(` ambu selecc : ${JSON.stringify(ambulanciaSeleccionada)}`)
     console.log(` mensaje selecc : ${mensaje}`)
     onRechazar(); // Llama a la función onRechazar si es necesario
     setOpen(false); // Cierra el diálogo sin realizar ninguna acción
