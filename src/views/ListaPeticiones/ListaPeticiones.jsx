@@ -114,6 +114,7 @@ const ListaPeticiones = () => {
                 createAt: "2023-11-23T19:45:58.333Z"
             }
         ]);
+        // obtenerPeticiones();
     }, []);
     const obtenerPeticiones = async () => {
         try {
@@ -133,7 +134,7 @@ const ListaPeticiones = () => {
     }
     const handleAceptarSolicitud = () => {
         setOpen(false);
-
+        window.location.reload();
     };
 
     const handleRechazarSolicitud = () => {
@@ -143,6 +144,7 @@ const ListaPeticiones = () => {
             });
             console.log(`datosSolicitud :${JSON.stringify(response)}`)
             setOpen(false);
+            window.location.reload();
         } catch (error) {
             console.log(`se encontró error handleRechazarSolicitud :${error}`)
         }
@@ -275,7 +277,7 @@ const ListaPeticiones = () => {
                                         {/* <Link component={RouterLink} to={`/actualizaciones/${item.id}`}>*/}
                                         <Button
                                             size="small"
-                                            onClick={() => handleClickOpenPaciente(item,item.user)}
+                                            onClick={() => handleClickOpenPaciente(item, item.user)}
                                             style={{ backgroundColor: 'blue', color: 'white' }}
                                         >
                                             Ver datos del solicitante
@@ -313,7 +315,7 @@ const ListaPeticiones = () => {
                                         {/* <Link component={RouterLink} to={`/actualizaciones/${item.id}`}>*/}
                                         <Button
                                             size="small"
-                                            onClick={() => handleClickOpenPaciente(item,item.user)}
+                                            onClick={() => handleClickOpenPaciente(item, item.user)}
                                             style={{ backgroundColor: 'blue', color: 'white' }}
                                         >
                                             Ver datos del solicitante
