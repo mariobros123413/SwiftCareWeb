@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Typography,
     List,
@@ -20,6 +20,8 @@ import {
 import PageContainer from 'src/components/container/PageContainer';
 import DashboardCard from '../../components/shared/DashboardCard';
 import { GoogleMap, Marker, InfoWindow, LoadScript, withGoogleMap } from '@react-google-maps/api';
+import api from 'src/axiosInstance';
+import { useParams } from 'react-router-dom';
 
 const ambulancias = [
     {
@@ -81,9 +83,29 @@ const ListaAmbulancia = () => {
     const [filterCategory, setFilterCategory] = useState('');
     const [openCreateDialog, setOpenCreateDialog] = useState(false);
     const [selectedAmbulance, setSelectedAmbulance] = useState(null);
+    const [empresas, setEmpresas] = useState([])
+    const { empresaId } = useParams();
+
+    useEffect(() => {
+        // obtenerAmbulancias();
+    }, []);
+    const obtenerAmbulancias = async () => {
+        try {
+            const response = await api.get(`/ambulance/enterprise/:empresaId`);
+            console.log(`responses  : ${(JSON.stringify(response))}`);
+            setEmpresas(response.data);
+        } catch (error) {
+            console.log(`error: ${error}`)
+        }
+    }
     const [newAmbulancia, setNewAmbulancia] = useState({
         plate: '',
         responsible: ''
+        // ... otros atributos
+    });
+    const [newCategory, setNewCategory] = useState({
+        type: '',
+        description: ''
         // ... otros atributos
     });
     const handleMarkerClick = (ambulancia) => {
@@ -122,8 +144,8 @@ const ListaAmbulancia = () => {
         setOpenCreateDialog(false);
         setNewAmbulancia({
             plate: '',
-            latStop: 0,
-            lngStop: 0,
+            latStop: -17.782295, 
+            lngStop: -63.181963,
             isActive: false,
             isIdle: true,
             // ... otros atributos
@@ -135,8 +157,8 @@ const ListaAmbulancia = () => {
     };
 
     const [initialCenter] = useState({
-        lat: 0, // Coloca aquí la latitud inicial del mapa
-        lng: 0, // Coloca aquí la longitud inicial del mapa
+        lat: -17.782295, // Coloca aquí la latitud inicial del mapa
+        lng: -63.181963, // Coloca aquí la longitud inicial del mapa
     });
     const [center, setCenter] = useState(initialCenter);
 
@@ -148,12 +170,24 @@ const ListaAmbulancia = () => {
         } else {
             // Aquí puedes enviar la nueva ambulancia al servidor o realizar la lógica necesaria
             console.log('Nueva Ambulancia:', newAmbulancia);
-            handleCreateDialogClose();
+            console.log('Nueva newCategory:', newCategory);
+
+            // const response = api.post('/ambulance', {
+            //     "ambulance": {
+            //         "plate": newAmbulancia.plate
+            //     },
+            //     "category": {
+            //         "description": newCategory.description,
+            //         "type": newCategory.type
+            //     }
+            // })
+            // console.log(`response:  ${response}`)
+            // handleCreateDialogClose();
         }
     };
 
     const filteredAmbulancias = filterCategory
-        ? ambulancias.filter((ambulancia) => ambulancia.category === filterCategory)
+        ? ambulancias.filter((ambulancia) => ambulancia.category.type === filterCategory)
         : ambulancias;
 
     return (
@@ -170,14 +204,17 @@ const ListaAmbulancia = () => {
                 <Button onClick={handleShowMap} variant="contained" color="primary">
                     Mostrar Mapa
                 </Button>
-                <Select
+                {/* <Select
                     label="Filtrar por Categoría"
                     value={filterCategory}
                     onChange={handleFilterChange}
                 >
                     <MenuItem value="">Todas las Categorías</MenuItem>
-                    {/* Agrega las opciones de categoría según tu lógica */}
-                </Select>
+                    <MenuItem value={1}>Categoria 1</MenuItem>
+                    <MenuItem value={2}>Categoria 2</MenuItem>
+                    <MenuItem value={3}>Categoria 3</MenuItem>
+                    <MenuItem value={4}>Categoria 4</MenuItem>
+                </Select> */}
                 <List>
                     {filteredAmbulancias.map((ambulancia) => (
                         <React.Fragment key={ambulancia.id}>
@@ -221,6 +258,20 @@ const ListaAmbulancia = () => {
                         value={newAmbulancia.responsible}
                         onChange={(e) => setNewAmbulancia({ ...newAmbulancia, responsible: e.target.value })}
                     />
+                    <TextField
+                        label="Tipo de Servicio"
+                        fullWidth
+                        margin="normal"
+                        value={newCategory.type}
+                        onChange={(e) => setNewCategory({ ...newCategory, type: e.target.value })}
+                    />
+                    <TextField
+                        label="Descripción de funcionalidades"
+                        fullWidth
+                        margin="normal"
+                        value={newCategory.description}
+                        onChange={(e) => setNewCategory({ ...newCategory, description: e.target.value })}
+                    />
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleCreateDialogClose} color="secondary">
@@ -254,7 +305,7 @@ const ListaAmbulancia = () => {
                                     {selectedAmbulance === ambulancia && (
                                         <InfoWindow onCloseClick={handleInfoWindowClose}>
                                             <div>
-                                                <h2>{ambulancia.plate}</h2>
+                                                <h2>{`Nro Placa : ${ambulancia.plate}`}</h2>
                                                 {/* Agrega aquí otros detalles de la ambulancia que desees mostrar */}
                                             </div>
                                         </InfoWindow>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Typography,
   List,
@@ -20,54 +20,57 @@ import {
 } from '@mui/material'; import PageContainer from 'src/components/container/PageContainer';
 import DashboardCard from '../../components/shared/DashboardCard';
 import { useNavigate } from 'react-router-dom';
+import api from 'src/axiosInstance';
+import axios from 'axios';
 
-const empresas = [
-  {
-    id: '1',
-    name: 'Empresa 1',
-    address: 'Dirección 1',
-    coordinates: [34.0522, -118.2437],
-    nit: '123456789',
-    phone: 123456789,
-    email: 'empresa1@example.com',
-    type: 1,
-  },
-  {
-    id: '2',
-    name: 'Empresa 2',
-    address: 'Dirección 2',
-    coordinates: [40.7128, -74.0060],
-    nit: '987654321',
-    phone: 987654321,
-    email: 'empresa2@example.com',
-    type: 2,
-  },
-  {
-    id: '3',
-    name: 'Empresa 3',
-    address: 'Dirección 3',
-    coordinates: [40.7128, -74.0060],
-    nit: '987654321',
-    phone: 987654321,
-    email: 'empresa3@example.com',
-    type: 3,
-  },
-  {
-    id: '4',
-    name: 'Empresa 4',
-    address: 'Dirección 4',
-    coordinates: [40.7128, -74.0060],
-    nit: '987654321',
-    phone: 987654321,
-    email: 'empresa4@example.com',
-    type: 4,
-  },
-  // ... más empresas
-];
+// const empresas = [
+//   {
+//     id: '1',
+//     name: 'Empresa 1',
+//     address: 'Dirección 1',
+//     coordinates: [34.0522, -118.2437],
+//     nit: '123456789',
+//     phone: 123456789,
+//     email: 'empresa1@example.com',
+//     type: 1,
+//   },
+//   {
+//     id: '2',
+//     name: 'Empresa 2',
+//     address: 'Dirección 2',
+//     coordinates: [40.7128, -74.0060],
+//     nit: '987654321',
+//     phone: 987654321,
+//     email: 'empresa2@example.com',
+//     type: 2,
+//   },
+//   {
+//     id: '3',
+//     name: 'Empresa 3',
+//     address: 'Dirección 3',
+//     coordinates: [40.7128, -74.0060],
+//     nit: '987654321',
+//     phone: 987654321,
+//     email: 'empresa3@example.com',
+//     type: 3,
+//   },
+//   {
+//     id: '4',
+//     name: 'Empresa 4',
+//     address: 'Dirección 4',
+//     coordinates: [40.7128, -74.0060],
+//     nit: '987654321',
+//     phone: 987654321,
+//     email: 'empresa4@example.com',
+//     type: 4,
+//   },
+//   // ... más empresas
+// ];
 
 const ListaEmpresa = () => {
   const [expandedId, setExpandedId] = useState(null);
   const [filterType, setFilterType] = useState('');
+  const [empresas, setEmpresas] = useState([]);
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
   const [selectedEmpresaId, setSelectedEmpresaId] = useState(null);
   const navigate = useNavigate();
@@ -81,6 +84,19 @@ const ListaEmpresa = () => {
     email: '',
     type: 1, // Valor por defecto, ajusta según tus necesidades
   });
+  useEffect(() => {
+    obtenerEmpresas();
+  }, []);
+
+  const obtenerEmpresas = async () => {
+    try {
+      const response = await api.get('/enterprises');
+      console.log(`responses  : ${(response)}`);
+      setEmpresas(response.data);
+    } catch (error) {
+      console.log(`error: ${error}`)
+    }
+  }
 
   const handleDetailsClick = (id) => {
     setExpandedId((prevId) => (prevId === id ? null : id));
@@ -107,7 +123,7 @@ const ListaEmpresa = () => {
     });
   };
 
-  const handleCreateEmpresa = () => {
+  const handleCreateEmpresa = async () => {
     // Verificar si todos los campos están llenos
     if (
       !newEmpresa.name ||
@@ -121,8 +137,24 @@ const ListaEmpresa = () => {
       alert('Todos los campos deben ser llenados');
     } else {
       // Aquí puedes enviar la nueva empresa al servidor o realizar la lógica necesaria
-      console.log('Nueva Empresa:', newEmpresa);
-      handleCreateDialogClose();
+      try {
+        console.log('Nueva Empresa:', newEmpresa);
+        newEmpresa.coordinates = [-17.778999, -63.175920]
+        const response = await api.post('/enterprises', {
+          "name": newEmpresa.name,
+          "address": newEmpresa.address,
+          "coordinates": newEmpresa.coordinates,
+          "email": newEmpresa.email,
+          "nit": newEmpresa.nit,
+          "phone": newEmpresa.phone,
+          "type": newEmpresa.type
+        });
+        console.log(`response : ${JSON.stringify(response)}`)
+        handleCreateDialogClose();
+      } catch (error) {
+        console.log(`error : ${error}`)
+      }
+
     }
   };
   const handleViewAmbulances = (empresaId) => {
@@ -161,7 +193,7 @@ const ListaEmpresa = () => {
           </Select>
         </FormControl>
         <List>
-          {filteredEmpresas.map((empresa) => (
+          {empresas && empresas.length > 0 && filteredEmpresas.map((empresa) => (
             <React.Fragment key={empresa.id}>
               <ListItem>
                 <ListItemText

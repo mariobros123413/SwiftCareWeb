@@ -6,12 +6,12 @@ import { withScriptjs, withGoogleMap, GoogleMap, Marker, Circle, InfoWindow } fr
 
 const WebhookRastreo = () => {
     const [ubicacion, setUbicacion] = useState({
-        latUser: 0,
-        lngUser: 0,
-        latScene: 0,
-        lngScene: 0,
-        latAmb: 0,
-        lngAmb: 0,
+        latUser: -17.776074, 
+        lngUser: -63.191765,
+        latScene: -17.777394731326236, 
+        lngScene: -63.18569178130802,
+        latAmb: -17.785183,
+        lngAmb:  -63.197812,
     });
 
     useEffect(() => {
@@ -26,8 +26,8 @@ const WebhookRastreo = () => {
                     lngUser: data.message.lngUser,
                     latScene: data.message.latScene,
                     lngScene: data.message.lngScene,
-                    // latAmb: data.message.latAmb,
-                    // lngAmb: data.message.lngAmb,
+                    latAmb: data.message.latAmb,
+                    lngAmb: data.message.lngAmb,
                 });
                 console.log(`data : ${JSON.stringify(data)}`)
             } catch (error) {
@@ -45,8 +45,8 @@ const WebhookRastreo = () => {
             <GoogleMap defaultZoom={15} defaultCenter={{ lat: ubicacion.latUser, lng: ubicacion.lngUser }}>
                 {/* Marcadores para el usuario afectado, la escena y la ambulancia */}
                 <Marker position={{ lat: ubicacion.latUser, lng: ubicacion.lngUser }} label="Usuario Afectado" />
-                <Marker position={{ lat: ubicacion.latScene, lng: ubicacion.lngScene }} label="Escena" />
-                {/* <Marker position={{ lat: ubicacion.latAmb, lng: ubicacion.lngAmb }} label="Ambulancia" /> */}
+                <Marker position={{ lat: ubicacion.latScene, lng: ubicacion.lngScene }} label="Hospital destino intencional" />
+                <Marker position={{ lat: ubicacion.latAmb, lng: ubicacion.lngAmb }} label="Ambulancia" />
             </GoogleMap>
         ))
     );

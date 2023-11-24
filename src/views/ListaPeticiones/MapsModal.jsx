@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { compose, withProps } from 'recompose';
 import { withScriptjs, withGoogleMap, GoogleMap, Marker, Circle, InfoWindow } from 'react-google-maps';
-import { Button, Dialog, TextField, Snackbar, Select, MenuItem, InputLabel, FormControl } from '@mui/material';
+import { Button, Dialog, TextField, Snackbar, Select, MenuItem, InputLabel, Checkbox, FormControl, TableCell, TableBody, TableRow, TableContainer, Table, TableHead, colors } from '@mui/material';
 import { Loader } from '@googlemaps/js-api-loader';
 import DashboardCard from '../../components/shared/DashboardCard';
 import api from 'src/axiosInstance';
@@ -23,7 +23,6 @@ const MapaComponente = compose(
   const [ambulanciasUpdate, setAmbulanciasUpdate] = useState([]);
   const [hospitales, setHospitales] = useState([]); // Agregado
   const [showHospitalInfo, setShowHospitalInfo] = useState(null);
-
   const handleInfoWindowClose = () => {
     // Cerrar el InfoWindow
     setSeleccionado(null);
@@ -149,16 +148,20 @@ const MapaComponente = compose(
           <Marker
             key={index}
             position={{ lat: ambulancia.latCurrent, lng: ambulancia.lngCurrent }}
-            label={ambulancia.category.type}
-            onClick={() => handleMarkerClick(index)}
+            label={{
+              text: ambulancia.plate + "  " + ambulancia.category.type,
+              fontSize: '14px', // Ajusta el tamaño del texto según tus preferencias
+              fontWeight: 'bold', // Otras propiedades de estilo pueden ser utilizadas
+            }} onClick={() => handleMarkerClick(index)}
             icon={{
-              path: window.google.maps.SymbolPath.CIRCLE,
+              path: window.google.maps.SymbolPath.BACKWARD_CLOSED_ARROW,
               fillColor: seleccionado === index ? 'blue' : 'red',
               fillOpacity: 0.7,
               scale: 8,
               strokeWeight: 2,
               strokeColor: 'black',
             }}
+
           >
             {hospitales &&
               hospitales.map((hospital, index) => (
@@ -208,6 +211,7 @@ const MapaModal = ({ onAceptar, onRechazar, item }) => { //datosSolicitud
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [ambulanciasUpdate, setAmbulanciasUpdate] = useState([]);
   const [hospitalSeleccionado, setHospitalSeleccionado] = useState('');
+  const [openTable, setOpenTable] = useState(false);
 
   const handleAmbulanciasUpdate = (ambulancias) => {
     setAmbulanciasUpdate(ambulancias);
@@ -221,8 +225,8 @@ const MapaModal = ({ onAceptar, onRechazar, item }) => { //datosSolicitud
       "plate": "DI-34k1", //dsssd
       "latStop": "-23.3",
       "lngStop": "99.323",
-      "latCurrent": "-17.777944",
-      "lngCurrent": "-63.185610",
+      "latCurrent": "-17.768999",
+      "lngCurrent": "-63.193330",
       "isActive": true,
       "isIdle": true,
       "createAt": "2023-11-23T22:09:14.062Z",
@@ -236,8 +240,8 @@ const MapaModal = ({ onAceptar, onRechazar, item }) => { //datosSolicitud
       "plate": "DI-34k2", //dsssd
       "latStop": "-23.3",
       "lngStop": "99.323",
-      "latCurrent": "-17.790728",
-      "lngCurrent": "-63.142193",
+      "latCurrent": "-17.784582",
+      "lngCurrent": "-63.200378",
       "isActive": true,
       "isIdle": true,
       "createAt": "2023-11-23T22:09:14.062Z",
@@ -251,8 +255,8 @@ const MapaModal = ({ onAceptar, onRechazar, item }) => { //datosSolicitud
       "plate": "DI-34k3", //dsssd
       "latStop": "-23.3",
       "lngStop": "99.323",
-      "latCurrent": "-17.977944",
-      "lngCurrent": "-63.185610",
+      "latCurrent": "-17.788362",
+      "lngCurrent": "-63.189522",
       "isActive": true,
       "isIdle": true,
       "createAt": "2023-11-23T22:09:14.062Z",
@@ -292,12 +296,7 @@ const MapaModal = ({ onAceptar, onRechazar, item }) => { //datosSolicitud
       return;
     }
 
-    const reportes = ambulanciasUpdate.map((ambulancia, index) => ({
-      idAmbulancia: ambulancia.id,
-      distancia: ambulancia.distanceAndDuration.distance,
-      tiempo: ambulancia.distanceAndDuration.duration,
-      asignado: index === ambulanciaSeleccionada,
-    }));
+
     console.log(`resportes : ${JSON.stringify(reportes)}`)
     console.log(`hospital select : ${hospitalSeleccionado}`)
     try {
@@ -334,6 +333,12 @@ const MapaModal = ({ onAceptar, onRechazar, item }) => { //datosSolicitud
     }
   };
 
+  const reportes = ambulanciasUpdate.map((ambulancia, index) => ({
+    idAmbulancia: ambulancia.id,
+    distancia: ambulancia.distanceAndDuration.distance,
+    tiempo: ambulancia.distanceAndDuration.duration,
+    asignado: index === ambulanciaSeleccionada,
+  }));
 
   const handleRechazar = () => {
     // const response = api.patch('requests/responder/${item.nro',
@@ -355,10 +360,13 @@ const MapaModal = ({ onAceptar, onRechazar, item }) => { //datosSolicitud
     setRadioVisualizacion(isNaN(nuevoRadio) ? 0 : Math.max(0, nuevoRadio));
   };
 
-  const handleCloseDialog = () => {
-    setOpen(false); // Cierra el diálogo sin realizar ninguna acción
+  const handleCloseTable = () => {
+    setOpenTable(false); // Cierra el diálogo sin realizar ninguna acción
   };
-
+  const handleOpenTable = () => {
+    console.log(`ambulanciasUpdate : ${JSON.stringify(ambulanciasUpdate)}`)
+    setOpenTable(true); // Cierra el diálogo sin realizar ninguna acción
+  };
   const hospitales = [
     {
       "nombre": "Hospital Universitario Martín Dockweiler",
@@ -403,6 +411,11 @@ const MapaModal = ({ onAceptar, onRechazar, item }) => { //datosSolicitud
           hospitalSeleccionado={hospitalSeleccionado}
         />
         {/* Campo de entrada para el radio de visualización */}
+        <Button size="small"
+          onClick={() => handleOpenTable()}
+          style={{ backgroundColor: 'blue', color: 'white' }}>
+          Mostrar Tabla de Ambulancias
+        </Button>
         <TextField
           label="Radio de visualización (metros)"
           type="number"
@@ -441,6 +454,43 @@ const MapaModal = ({ onAceptar, onRechazar, item }) => { //datosSolicitud
             ))}
           </Select>
         </FormControl>
+        <Dialog
+          open={openTable}
+          onClose={handleCloseTable}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
+          fullWidth>
+          {/* Tabla de ambulancias */}
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Placa de la Ambulancia</TableCell>
+                  <TableCell>Categoría</TableCell>
+                  <TableCell>Distancia</TableCell>
+                  <TableCell>Tiempo de Llegada</TableCell>
+                  <TableCell>Asignar</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {ambulanciasUpdate.map((ambulancia, index) => (
+                  <TableRow key={index}>
+                    <TableCell>{ambulancia.plate}</TableCell>
+                    <TableCell>{ambulancia.category.type}</TableCell>
+                    <TableCell>{ambulancia.distanceAndDuration.distance}</TableCell>
+                    <TableCell>{ambulancia.distanceAndDuration.duration}</TableCell>
+                    <TableCell>
+                      <Checkbox
+                      // checked={ambulanciasSeleccionadas.has(index)}
+                      // onChange={() => handleAmbulanciaSeleccionada(index)}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Dialog>
         <div className="modal-botones">
           <Button onClick={handleAceptar}>Aceptar</Button>
           <Button onClick={handleRechazar}>Rechazar</Button>
@@ -456,7 +506,7 @@ const MapaModal = ({ onAceptar, onRechazar, item }) => { //datosSolicitud
           horizontal: 'right',
         }}
       />
-    </div>
+    </div >
   );
 };
 
