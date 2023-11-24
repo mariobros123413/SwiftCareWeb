@@ -1,5 +1,5 @@
 import {
-  IconAperture, IconCopy, IconLayoutDashboard, IconLogin, IconMoodHappy, IconTypography, IconUserPlus
+  IconAperture, IconCopy, IconLayoutDashboard, IconLogin, IconMoodHappy, IconTypography, IconUserPlus, IconHearts, IconLayoutList
 } from '@tabler/icons';
 
 import { uniqueId } from 'lodash';
@@ -23,8 +23,14 @@ const Menuitems = [
   {
     id: uniqueId(),
     title: 'Peticiones',
-    icon: IconTypography,
+    icon: IconHearts,
     href: '/peticiones',
+  },
+  {
+    id: uniqueId(),
+    title: 'Gestiones',
+    icon: IconLayoutList,
+    href: '/listaEmpresas',
   },
   {
     id: uniqueId(),

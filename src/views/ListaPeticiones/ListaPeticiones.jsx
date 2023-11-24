@@ -5,10 +5,14 @@ import DashboardCard from '../../components/shared/DashboardCard';
 import api from 'src/axiosInstance';
 import MapaModal from './MapsModal';
 import ReactDOM from 'react-dom';
+import { useNavigate } from 'react-router-dom';
+
 const modalRoot = document.getElementById('modal-root') || document.createElement('div');
 document.body.appendChild(modalRoot);
 
 const ListaPeticiones = () => {
+    const navigate = useNavigate();
+
     const [solicitudes, setSolicitudes] = useState([]);
     const localData = window.localStorage.getItem('loggedFocusEvent');
     const localDataParsed = JSON.parse(localData);
@@ -134,7 +138,7 @@ const ListaPeticiones = () => {
     }
     const handleAceptarSolicitud = () => {
         setOpen(false);
-        window.location.reload();
+        // window.location.reload();
     };
 
     const handleRechazarSolicitud = () => {
@@ -144,7 +148,7 @@ const ListaPeticiones = () => {
             });
             console.log(`datosSolicitud :${JSON.stringify(response)}`)
             setOpen(false);
-            window.location.reload();
+            // window.location.reload();
         } catch (error) {
             console.log(`se encontró error handleRechazarSolicitud :${error}`)
         }
@@ -165,6 +169,11 @@ const ListaPeticiones = () => {
     const handleClickOpen = (item) => {
         // setDatosSolicitud(solicitud);-17.776121, -63.195057
         setDatosSolicitud(item);
+        setOpen(true);
+    };
+    const handleClickOpenRastreo = (item) => {
+        // setDatosSolicitud(solicitud);-17.776121, -63.195057
+        navigate(`/webhook/${item}`);
         setOpen(true);
     };
 
@@ -284,6 +293,7 @@ const ListaPeticiones = () => {
                                         </Button>
                                         <Button
                                             size="small"
+                                            onClick={() => handleClickOpenRastreo(item.nro)}
                                             style={{ backgroundColor: 'purple', color: 'white' }}
                                         >
                                             Mostrar Actualizaciones

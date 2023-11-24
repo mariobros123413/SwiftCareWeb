@@ -301,7 +301,6 @@ const MapaModal = ({ onAceptar, onRechazar, item }) => { //datosSolicitud
     console.log(`resportes : ${JSON.stringify(reportes)}`)
     console.log(`hospital select : ${hospitalSeleccionado}`)
     try {
-      // Realiza la lógica adicional aquí, como enviar los reportes a la API
       // const response = await api.patch(`request/responder/${item.nro}`, {
       //   estado: true,
       //   ambulanciaid: ambulanciasUpdate.map((ambulancia) => ambulancia.id),
@@ -310,7 +309,6 @@ const MapaModal = ({ onAceptar, onRechazar, item }) => { //datosSolicitud
       //   reportes: reportes,  // Aquí incluimos el array de reportes en la solicitud
       // });
 
-      // // Imprime la respuesta de la API (si es necesario)
       // console.log('Respuesta de la API:', response);
       // const response2 = await api.patch(`/requests/response/${item.nro}`, {
       //   "estado": "Aceptado",

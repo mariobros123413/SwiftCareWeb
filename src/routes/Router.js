@@ -16,6 +16,12 @@ const Error = Loadable(lazy(() => import('../views/authentication/Error')));
 const Register = Loadable(lazy(() => import('../views/authentication/Register')));
 const Login = Loadable(lazy(() => import('../views/authentication/Login')));
 const ListaPeticiones = Loadable(lazy(() => import('../views/ListaPeticiones/ListaPeticiones')));
+const ListaEmpresa = Loadable(lazy(() => import('../views/Gestion/ListaEmpresa')));
+const ListaAmbulancia = Loadable(lazy(() => import('../views/Gestion/ListaAmbulancia')));
+
+
+const WebhookRastreo = Loadable(lazy(() => import('../views/ListaPeticiones/WebhookRastreo')));
+
 const Router = [
   {
     path: '/',
@@ -25,6 +31,9 @@ const Router = [
       { path: '/dashboard', exact: true, element: <Dashboard /> },
       { path: '/sample-page', exact: true, element: <SamplePage /> },
       { path: '/peticiones', exact: true, element: <ListaPeticiones /> },
+      { path: '/webhook/:idSolicitud', exact: true, element: <WebhookRastreo /> },
+      { path: '/listaEmpresas', exact: true, element: <ListaEmpresa /> },
+      { path: '/listaEmpresas/listaAmbulancias/:empresaId', exact: true, element: <ListaAmbulancia /> },
       { path: '/icons', exact: true, element: <Icons /> },
       { path: '/ui/typography', exact: true, element: <TypographyPage /> },
       { path: '/ui/shadow', exact: true, element: <Shadow /> },
