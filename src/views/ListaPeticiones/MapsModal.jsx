@@ -39,6 +39,7 @@ const MapaComponente = compose(
     libraries: ['geometry', 'places'],
   });
   useEffect(() => {
+    // console.log(`props.ubicacionUsuario : ${(JSON.stringify(props.ubicacionUsuario))}`)
     const loadData = async () => {
       if (props.ubicacionUsuario && props.ambulancias.length > 0) {
         try {
@@ -123,16 +124,25 @@ const MapaComponente = compose(
   return (
     <GoogleMap
       defaultZoom={15}
-      defaultCenter={props.ubicacionUsuario || { lat: 0, lng: 0 }}
+      defaultCenter={{ lat: -17.777178, lng: -63.187189 }}
       ref={(map) => map && !map.hasOwnProperty('google') && setMap(map)}
     >
       {props.ubicacionUsuario && (
-        <Marker position={props.ubicacionUsuario} label="Afectado" />
+        <Marker
+          position={{
+            lat: Number(props.ubicacionUsuario.lat),
+            lng: Number(props.ubicacionUsuario.lng),
+          }}
+          label="Afectado"
+        />
       )}
+
       {props.ubicacionUsuario && (
         <Circle
-          center={props.ubicacionUsuario}
-          radius={props.radioVisualizacion}
+          center={{
+            lat: Number(props.ubicacionUsuario.lat),
+            lng: Number(props.ubicacionUsuario.lng),
+          }} radius={props.radioVisualizacion}
           options={{
             fillColor: '#007BFF',
             fillOpacity: 0.3,
@@ -212,81 +222,110 @@ const MapaModal = ({ onAceptar, onRechazar, item }) => { //datosSolicitud
   const [ambulanciasUpdate, setAmbulanciasUpdate] = useState([]);
   const [hospitalSeleccionado, setHospitalSeleccionado] = useState('');
   const [openTable, setOpenTable] = useState(false);
-
+  const [order, setOrder] = useState('asc');
+  const [orderBy, setOrderBy] = useState('duration');
+  const [orderDirection, setOrderDirection] = useState('asc');
+  const [coordenadasAmbulancias, setCoordenadasAmbulancias] = useState([]);
+  const [ambulancias, setAmbulancias] = useState([]);
   const handleAmbulanciasUpdate = (ambulancias) => {
     setAmbulanciasUpdate(ambulancias);
   };
   const handleHospitalChange = (event) => {
     setHospitalSeleccionado(event.target.value);
   };
-  const coordenadasAmbulancias = [
-    {
-      "id": "26d50572-5181-4db8-8c03-ce82c68c3f1a",
-      "plate": "DI-34k1", //dsssd
-      "latStop": "-23.3",
-      "lngStop": "99.323",
-      "latCurrent": "-17.768999",
-      "lngCurrent": "-63.193330",
-      "isActive": true,
-      "isIdle": true,
-      "createAt": "2023-11-23T22:09:14.062Z",
-      "category": {
-        "type": "B",
-        "description": "traslado y salvataje"
-      }
-    },
-    {
-      "id": "26d50572-5181-4db8-8c03-ce82c68c3fsdsa",
-      "plate": "DI-34k2", //dsssd
-      "latStop": "-23.3",
-      "lngStop": "99.323",
-      "latCurrent": "-17.784582",
-      "lngCurrent": "-63.200378",
-      "isActive": true,
-      "isIdle": true,
-      "createAt": "2023-11-23T22:09:14.062Z",
-      "category": {
-        "type": "C",
-        "description": "traslado y salvataje"
-      }
-    },
-    {
-      "id": "26d50572-5181-4db8-8c03-ce82c68c3fdsa",
-      "plate": "DI-34k3", //dsssd
-      "latStop": "-23.3",
-      "lngStop": "99.323",
-      "latCurrent": "-17.788362",
-      "lngCurrent": "-63.189522",
-      "isActive": true,
-      "isIdle": true,
-      "createAt": "2023-11-23T22:09:14.062Z",
-      "category": {
-        "type": "A",
-        "description": "traslado y salvataje"
-      }
+  const ambu = async () => {
+    try {
+      const coord = await api.get('/ambulance/all/available');
+      console.log(`coord : ${JSON.stringify(coord.data)}`);
+      const res = parsearCoordenadas(coord.data);
+      setAmbulancias(coord.data);
+      setCoordenadasAmbulancias(res);
+    } catch (error) {
+      console.error(error);
     }
-  ];
+  }
+  // const coordenadasAmbulancias = [
+  //   {
+  //     "id": "26d50572-5181-4db8-8c03-ce82c68c3f1a",
+  //     "plate": "DI-34k1", //dsssd
+  //     "latStop": "-23.3",
+  //     "lngStop": "99.323",
+  //     "latCurrent": "-17.768999",
+  //     "lngCurrent": "-63.193330",
+  //     "isActive": true,
+  //     "isIdle": true,
+  //     "createAt": "2023-11-23T22:09:14.062Z",
+  //     "category": {
+  //       "type": "B",
+  //       "description": "traslado y salvataje"
+  //     }
+  //   },
+  //   {
+  //     "id": "26d50572-5181-4db8-8c03-ce82c68c3fsdsa",
+  //     "plate": "DI-34k2", //dsssd
+  //     "latStop": "-23.3",
+  //     "lngStop": "99.323",
+  //     "latCurrent": "-17.784582",
+  //     "lngCurrent": "-63.200378",
+  //     "isActive": true,
+  //     "isIdle": true,
+  //     "createAt": "2023-11-23T22:09:14.062Z",
+  //     "category": {
+  //       "type": "C",
+  //       "description": "traslado y salvataje"
+  //     }
+  //   },
+  //   {
+  //     "id": "26d50572-5181-4db8-8c03-ce82c68c3fdsa",
+  //     "plate": "DI-34k3", //dsssd
+  //     "latStop": "-23.3",
+  //     "lngStop": "99.323",
+  //     "latCurrent": "-17.788362",
+  //     "lngCurrent": "-63.189522",
+  //     "isActive": true,
+  //     "isIdle": true,
+  //     "createAt": "2023-11-23T22:09:14.062Z",
+  //     "category": {
+  //       "type": "A",
+  //       "description": "traslado y salvataje"
+  //     }
+  //   }
+  // ];
   function parsearCoordenadas(arrayDeObjetos) {
     return arrayDeObjetos.map((objeto) => ({
       ...objeto,
-      latStop: parseFloat(objeto.latStop),
-      lngStop: parseFloat(objeto.lngStop),
-      latCurrent: parseFloat(objeto.latCurrent),
-      lngCurrent: parseFloat(objeto.lngCurrent),
+      latStop: parseFloat(objeto.lat_stop),
+      lngStop: parseFloat(objeto.lng_stop),
+      latCurrent: parseFloat(objeto.lat_current),
+      lngCurrent: parseFloat(objeto.lng_current),
     }));
   }
   const handleAmbulanciaSeleccionada = (ambulancia) => {
-    setAmbulanciaSeleccionada(ambulancia);
+    console.log(`ambulancia : ${JSON.stringify(ambulancias[ambulancia])}`);
+    setAmbulanciaSeleccionada(ambulancias[ambulancia]);
   };
   useEffect(() => {
     // Obtener la ubicación actual del dispositivo
+    // console.log(`datas :${JSON.stringify(item)}`)
     if (navigator.geolocation) {
-      setUbicacionActual({ lat: item.latScene, lng: item.lngScene });
+      setUbicacionActual({ lat: item.lat_scene, lng: item.lng_scene });
 
     } else {
       console.error('Geolocalización no es compatible en este navegador.');
     }
   }, [ambulanciaSeleccionada, ambulanciasUpdate]); // Se ejecuta solo una vez al montar el componente
+
+  useEffect(() => {
+    ambu();
+  }, [])
+  useEffect(() => {
+    // Ordenar automáticamente por tiempo al abrir la tabla
+    const ambulanciasOrdenadas = [...ambulanciasUpdate].sort((a, b) => {
+      const factor = order === 'asc' ? 1 : -1;
+      return factor * (a.distanceAndDuration[orderBy] - b.distanceAndDuration[orderBy]);
+    });
+    setAmbulanciasUpdate(ambulanciasOrdenadas);
+  }, [ambulanciasUpdate, order, orderBy]);
 
   const handleAceptar = async () => {
     if (!ambulanciasUpdate.length || ambulanciaSeleccionada === null) {
@@ -297,10 +336,10 @@ const MapaModal = ({ onAceptar, onRechazar, item }) => { //datosSolicitud
     }
 
 
-    console.log(`resportes : ${JSON.stringify(reportes)}`)
-    console.log(`hospital select : ${hospitalSeleccionado}`)
+    // console.log(`resportes : ${JSON.stringify(reportes)}`)
+    // console.log(`hospital select : ${hospitalSeleccionado}`)
     try {
-      // const response = await api.patch(`request/responder/${item.nro}`, {
+      // const response = await api.patch(`request/response/${item.nro}`, {
       //   estado: true,
       //   ambulanciaid: ambulanciasUpdate.map((ambulancia) => ambulancia.id),
       //   distancia: ambulanciasUpdate.map((ambulancia) => ambulancia.distanceAndDuration.distance),
@@ -309,18 +348,12 @@ const MapaModal = ({ onAceptar, onRechazar, item }) => { //datosSolicitud
       // });
 
       // console.log('Respuesta de la API:', response);
-      // const response2 = await api.patch(`/requests/response/${item.nro}`, {
-      //   "estado": "Aceptado",
-      //   "entidad": {
-      //     "nombre": "San Juan de Dios",
-      //     "coordenada": {
-      //       "lat": -11213,
-      //       "lng": -21312
-      //     }
-      //   },
-      //   "idAmbulancia": ambulanciaSeleccionada.id
-      // })
-      // console.log('Respuesta2 de la API:', response2);
+      console.log(`ambulanciaSeleccionada.id :${JSON.stringify(ambulanciaSeleccionada.id)}`)
+      const response2 = await api.patch(`/request/response/${item.nro}`, {
+        "estado": "Aceptado",
+        "idAmbulancia": ambulanciaSeleccionada.id
+      })
+      console.log('Respuesta2 de la API:', response2);
 
       // Llama a la función onAceptar si es necesario
       onAceptar();
@@ -333,6 +366,7 @@ const MapaModal = ({ onAceptar, onRechazar, item }) => { //datosSolicitud
     }
   };
 
+
   const reportes = ambulanciasUpdate.map((ambulancia, index) => ({
     idAmbulancia: ambulancia.id,
     distancia: ambulancia.distanceAndDuration.distance,
@@ -341,11 +375,11 @@ const MapaModal = ({ onAceptar, onRechazar, item }) => { //datosSolicitud
   }));
 
   const handleRechazar = () => {
-    // const response = api.patch('requests/responder/${item.nro',
-    // {
-    //   "Estado" : "Rechazado"
-    // }
-    // )
+    const response = api.patch('request/responder/${item.nro',
+    {
+      "Estado" : "Rechazado"
+    }
+    )
     console.log(` ambu selecc : ${JSON.stringify(ambulanciaSeleccionada)}`)
     console.log(` mensaje selecc : ${mensaje}`)
     onRechazar(); // Llama a la función onRechazar si es necesario
@@ -364,9 +398,16 @@ const MapaModal = ({ onAceptar, onRechazar, item }) => { //datosSolicitud
     setOpenTable(false); // Cierra el diálogo sin realizar ninguna acción
   };
   const handleOpenTable = () => {
-    console.log(`ambulanciasUpdate : ${JSON.stringify(ambulanciasUpdate)}`)
-    setOpenTable(true); // Cierra el diálogo sin realizar ninguna acción
+    // Ordenar automáticamente por tiempo de llegada al abrir la tabla
+    const ambulanciasOrdenadas = [...ambulanciasUpdate].sort((a, b) => {
+      const factor = orderDirection === 'asc' ? 1 : -1;
+      return factor * (a.distanceAndDuration[orderBy] - b.distanceAndDuration[orderBy]);
+    });
+
+    setAmbulanciasUpdate(ambulanciasOrdenadas);
+    setOpenTable(true);
   };
+
   const hospitales = [
     {
       "nombre": "Hospital Universitario Martín Dockweiler",
@@ -402,8 +443,8 @@ const MapaModal = ({ onAceptar, onRechazar, item }) => { //datosSolicitud
       <DashboardCard>
         <MapaComponente
           ubicacionActual={ubicacionActual}
-          ubicacionUsuario={{ lat: item.latScene, lng: item.lngScene }} // Cambié las llaves para que sea un objeto
-          ambulancias={parsearCoordenadas(coordenadasAmbulancias)}
+          ubicacionUsuario={{ lat: item.lat_scene, lng: item.lng_scene }} // Cambié las llaves para que sea un objeto
+          ambulancias={(coordenadasAmbulancias)}
           radioVisualizacion={radioVisualizacion}
           onAmbulanciaSeleccionada={handleAmbulanciaSeleccionada}
           onAmbulanciasUpdate={handleAmbulanciasUpdate}
@@ -439,7 +480,7 @@ const MapaModal = ({ onAceptar, onRechazar, item }) => { //datosSolicitud
           margin="normal"
         />
         <FormControl fullWidth margin="normal">
-          <InputLabel id="select-hospital-label">Hospital</InputLabel>
+          <InputLabel id="select-hospital-label">Hospital Tentativo para esta solicitud</InputLabel>
           <Select
             labelId="select-hospital-label"
             id="select-hospital"
@@ -468,7 +509,12 @@ const MapaModal = ({ onAceptar, onRechazar, item }) => { //datosSolicitud
                   <TableCell>Placa de la Ambulancia</TableCell>
                   <TableCell>Categoría</TableCell>
                   <TableCell>Distancia</TableCell>
-                  <TableCell>Tiempo de Llegada</TableCell>
+                  <Button
+                    onClick={() => setOrderBy('distanceAndDuration.duration')}
+                    style={{ color: 'black', paddingTop: '15px' }}
+                  >
+                    Tiempo de Llegada
+                  </Button>
                   <TableCell>Asignar</TableCell>
                 </TableRow>
               </TableHead>
@@ -487,6 +533,9 @@ const MapaModal = ({ onAceptar, onRechazar, item }) => { //datosSolicitud
                     </TableCell>
                   </TableRow>
                 ))}
+                <Button>
+                  Confirmar
+                </Button>
               </TableBody>
             </Table>
           </TableContainer>

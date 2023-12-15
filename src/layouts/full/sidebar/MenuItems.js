@@ -22,7 +22,7 @@ const Menuitems = [
   },
   {
     id: uniqueId(),
-    title: 'Peticiones',
+    title: 'Ver Solicitudes',
     icon: IconHearts,
     href: '/peticiones',
   },

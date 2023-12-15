@@ -29,8 +29,8 @@ const ambulancias = [
         plate: 'ABC123',
         "latStop": -23.3,
         "lngStop": 99.323,
-        "latCurrent": -17.777944,
-        "lngCurrent": -63.185610,
+        "latCurrent": -17.79071256608486,
+        "lngCurrent": -63.19315302361915,
         isActive: true,
         isIdle: false,
         category: 'Tipo 1',
@@ -41,8 +41,8 @@ const ambulancias = [
         plate: 'XYZ789',
         "latStop": -23.3,
         "lngStop": 99.323,
-        "latCurrent": -17.790728,
-        "lngCurrent": -63.142193,
+        "latCurrent": -17.773385777310583,
+        "lngCurrent": -63.170493722740574,
         isActive: false,
         isIdle: true,
         category: 'Tipo 2',
@@ -53,8 +53,8 @@ const ambulancias = [
         plate: 'DEF456',
         "latStop": -23.3,
         "lngStop": 99.323,
-        "latCurrent": -17.977944,
-        "lngCurrent": -63.185610,
+        "latCurrent": -17.788097309438207,
+        "lngCurrent": -63.1811367276987,
         isActive: true,
         isIdle: true,
         category: 'Tipo 3',
@@ -65,11 +65,35 @@ const ambulancias = [
         plate: 'GHI789',
         "latStop": -22.3,
         "lngStop": 98.323,
-        "latCurrent": -16.977944,
-        "lngCurrent": -62.185610,
+        "latCurrent": -17.766846929833683,
+        "lngCurrent": -63.1787334685146,
         isActive: false,
         isIdle: false,
-        category: 'Tipo 1',
+        category: 'Tipo 2',
+        // ... otros atributos
+    },
+    {
+        id: '5',
+        plate: 'IS989',
+        "latStop": -22.3,
+        "lngStop": 98.323,
+        "latCurrent": -17.791039470472505,
+        "lngCurrent": -63.18937647347273,
+        isActive: false,
+        isIdle: false,
+        category: 'Tipo 4',
+        // ... otros atributos
+    },
+    {
+        id: '6',
+        plate: 'GPO789',
+        "latStop": -22.3,
+        "lngStop": 98.323,
+        "latCurrent": -17.780578233254953,
+        "lngCurrent": -63.171523690962324,
+        isActive: false,
+        isIdle: false,
+        category: 'Tipo 3',
         // ... otros atributos
     },
     // Agrega más objetos según sea necesario
@@ -186,10 +210,6 @@ const ListaAmbulancia = () => {
         }
     };
 
-    const filteredAmbulancias = filterCategory
-        ? ambulancias.filter((ambulancia) => ambulancia.category.type === filterCategory)
-        : ambulancias;
-
     return (
         <PageContainer title="Lista Ambulancia" description="Lista de ambulancias">
             <DashboardCard title="Lista de Ambulancias">
@@ -216,7 +236,7 @@ const ListaAmbulancia = () => {
                     <MenuItem value={4}>Categoria 4</MenuItem>
                 </Select> */}
                 <List>
-                    {filteredAmbulancias.map((ambulancia) => (
+                    {ambulancias.map((ambulancia) => (
                         <React.Fragment key={ambulancia.id}>
                             <ListItem>
                                 <ListItemText
@@ -282,7 +302,7 @@ const ListaAmbulancia = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
-            <LoadScript googleMapsApiKey="AIzaSyAa2V392qiDYUoPyw49FgpUHGRjriPba-o">
+            <LoadScript googleMapsApiKey={process.env.REACT_APP_NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}>
                 <Dialog open={showMap} onClose={handleCloseMap} fullWidth maxWidth="md">
                     <DialogTitle>Mapa de Ambulancias</DialogTitle>
                     <DialogContent>

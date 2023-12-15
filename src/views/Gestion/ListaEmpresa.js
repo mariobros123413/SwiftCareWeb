@@ -23,54 +23,54 @@ import { useNavigate } from 'react-router-dom';
 import api from 'src/axiosInstance';
 import axios from 'axios';
 
-// const empresas = [
-//   {
-//     id: '1',
-//     name: 'Empresa 1',
-//     address: 'Dirección 1',
-//     coordinates: [34.0522, -118.2437],
-//     nit: '123456789',
-//     phone: 123456789,
-//     email: 'empresa1@example.com',
-//     type: 1,
-//   },
-//   {
-//     id: '2',
-//     name: 'Empresa 2',
-//     address: 'Dirección 2',
-//     coordinates: [40.7128, -74.0060],
-//     nit: '987654321',
-//     phone: 987654321,
-//     email: 'empresa2@example.com',
-//     type: 2,
-//   },
-//   {
-//     id: '3',
-//     name: 'Empresa 3',
-//     address: 'Dirección 3',
-//     coordinates: [40.7128, -74.0060],
-//     nit: '987654321',
-//     phone: 987654321,
-//     email: 'empresa3@example.com',
-//     type: 3,
-//   },
-//   {
-//     id: '4',
-//     name: 'Empresa 4',
-//     address: 'Dirección 4',
-//     coordinates: [40.7128, -74.0060],
-//     nit: '987654321',
-//     phone: 987654321,
-//     email: 'empresa4@example.com',
-//     type: 4,
-//   },
-//   // ... más empresas
-// ];
+const empresas = [
+  {
+    id: '1',
+    name: 'Empresa 1',
+    address: 'Dirección 1',
+    coordinates: [34.0522, -118.2437],
+    nit: '123456789',
+    phone: 123456789,
+    email: 'empresa1@example.com',
+    type: 1,
+  },
+  {
+    id: '2',
+    name: 'Empresa 2',
+    address: 'Dirección 2',
+    coordinates: [40.7128, -74.0060],
+    nit: '987654321',
+    phone: 987654321,
+    email: 'empresa2@example.com',
+    type: 2,
+  },
+  {
+    id: '3',
+    name: 'Empresa 3',
+    address: 'Dirección 3',
+    coordinates: [40.7128, -74.0060],
+    nit: '987654321',
+    phone: 987654321,
+    email: 'empresa3@example.com',
+    type: 3,
+  },
+  {
+    id: '4',
+    name: 'Empresa 4',
+    address: 'Dirección 4',
+    coordinates: [40.7128, -74.0060],
+    nit: '987654321',
+    phone: 987654321,
+    email: 'empresa4@example.com',
+    type: 4,
+  },
+  // ... más empresas
+];
 
 const ListaEmpresa = () => {
   const [expandedId, setExpandedId] = useState(null);
   const [filterType, setFilterType] = useState('');
-  const [empresas, setEmpresas] = useState([]);
+  const [, setEmpresas] = useState([]);
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
   const [selectedEmpresaId, setSelectedEmpresaId] = useState(null);
   const navigate = useNavigate();
@@ -85,7 +85,7 @@ const ListaEmpresa = () => {
     type: 1, // Valor por defecto, ajusta según tus necesidades
   });
   useEffect(() => {
-    obtenerEmpresas();
+    // obtenerEmpresas();
   }, []);
 
   const obtenerEmpresas = async () => {
@@ -162,9 +162,6 @@ const ListaEmpresa = () => {
     setSelectedEmpresaId(empresaId);
     navigate(`/listaEmpresas/listaAmbulancias/${empresaId}`)
   };
-  const filteredEmpresas = filterType
-    ? empresas.filter((empresa) => empresa.type === filterType)
-    : empresas;
 
   return (
     <PageContainer title="Lista Ambulancia" description="Lista de empresas de ambulancia">
@@ -193,7 +190,7 @@ const ListaEmpresa = () => {
           </Select>
         </FormControl>
         <List>
-          {empresas && empresas.length > 0 && filteredEmpresas.map((empresa) => (
+          {empresas && empresas.length > 0 && empresas.map((empresa) => (
             <React.Fragment key={empresa.id}>
               <ListItem>
                 <ListItemText

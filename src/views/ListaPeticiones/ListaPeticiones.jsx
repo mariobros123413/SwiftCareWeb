@@ -19,6 +19,9 @@ const ListaPeticiones = () => {
     const [filtroEstado, setFiltroEstado] = useState('Todos');
     const [filtroFechaInicio, setFiltroFechaInicio] = useState('');
     const [filtroFechaFin, setFiltroFechaFin] = useState('');
+    const [filtroDescripcion, setFiltroDescripcion] = useState('');
+    const [filtroDireccion, setFiltroDireccion] = useState('');
+
     //VER DATOS DEL PACIENTE
     const [datosUsuario, setDatosUsuario] = useState(null);
     const [openPaciente, setOpenPaciente] = useState(false);
@@ -26,103 +29,28 @@ const ListaPeticiones = () => {
     const [open, setOpen] = useState(false);
     const [datosSolicitud, setDatosSolicitud] = useState(null);
     useEffect(() => {
-        // Aquí cargas tus datos, puedes reemplazar esto con tu lógica real.
-        setSolicitudes([
-            {
-                latUser: -17.774408,
-                lngUser: -63.193042,
-                latScene: -17.776406,
-                lngScene: -63.193042,
-                address: "234234",
-                photo: "scenes/photo-1700757958326-712663691.png",
-                video: "scenes/video-1700757958240-877872332.mp4",
-                user: {
-                    "id": "5d17553f-7c06-4a8a-8427-0431fe033f4a",
-                    "ci": "123456",
-                    "fullName": "Nombre prueba",
-                    "phone": 76666666,
-                    "isResponsible": false,
-                    "createAt": "2023-11-23T07:09:21.194Z"
-                },
-                descripcion: "Se accidentó un estudiante de la uagrm, en la av. busch",
-                victimsNum: "1",
-                nro: "d0f3ed68-19a5-473b-abd5-de4abf9d4c6b",
-                status: "Pendiente",
-                createAt: "2023-09-23T16:45:58.333Z"
-            },
+        obtenerPeticiones();
+        const eventSource = new EventSource("http://192.168.6.159:3001/api/sse");
+        eventSource.onmessage = (event) => {
+            console.log(`nueva solicitud : ${(JSON.parse(event.data).message)}`)
+            const obje = JSON.parse(event.data).message;
+            try {
+                const data = (event.data);
+                setSolicitudes((prevSolicitudes) => [...prevSolicitudes, obje]);
 
-            {
-                latUser: 32.3,
-                lngUser: 32.3,
-                latScene: 32.3,
-                lngScene: 32.3,
-                address: "567567",
-                photo: "scenes/photo-1700757958326-712663691.png",
-                video: "scenes/video-1700757958240-877872332.mp4",
-                user: {
-                    "id": "8c17553f-7c06-4a8a-8427-0431fe033f4b",
-                    "ci": "654321",
-                    "fullName": "Nombre ejemplo",
-                    "phone": 75555555,
-                    "isResponsible": true,
-                    "createAt": "2023-11-23T08:09:21.194Z"
-                },
-                descripcion: "Descripción de la escena",
-                victimsNum: 2,
-                nro: "e1f3ed68-19a5-473b-abd5-de4abf9d4c6c",
-                status: "Aceptado",
-                createAt: "2023-09-16T17:45:58.333Z"
-            },
-            {
-                latUser: 32.3,
-                lngUser: 32.3,
-                latScene: 32.3,
-                lngScene: 32.3,
-                address: "999999",
-                photo: "scenes/photo-1700757958326-712663691.png",
-                video: "scenes/video-1700757958240-877872332.mp4",
-                user: {
-                    "id": "bc17553f-7c06-4a8a-8427-0431fe033f4c",
-                    "ci": "789012",
-                    "fullName": "Nombre de prueba",
-                    "phone": 74444444,
-                    "isResponsible": false,
-                    "createAt": "2023-11-23T09:09:21.194Z"
-                },
-                descripcion: "Otra descripción de la escena",
-                victimsNum: 1,
-                nro: "g2f3ed68-19a5-473b-abd5-de4abf9d4c6d",
-                status: "Rechazado",
-                createAt: "2023-07-23T18:45:58.333Z"
-            },
-            {
-                latUser: 32.3,
-                lngUser: 32.3,
-                latScene: 32.3,
-                lngScene: 32.3,
-                address: "123123",
-                photo: "scenes/photo-1700757958326-712663691.png",
-                video: "scenes/video-1700757958240-877872332.mp4",
-                user: {
-                    "id": "ec17553f-7c06-4a8a-8427-0431fe033f4d",
-                    "ci": "345678",
-                    "fullName": "Nombre de ejemplo",
-                    "phone": 73333333,
-                    "isResponsible": true,
-                    "createAt": "2023-11-23T10:09:21.194Z"
-                },
-                descripcion: "Descripción adicional de la escena",
-                victimsNum: 3,
-                nro: "k3f3ed68-19a5-473b-abd5-de4abf9d4c6e",
-                status: "Finalizado",
-                createAt: "2023-11-23T19:45:58.333Z"
+            } catch (error) {
+                console.error('Error al parsear datos del webhook:', error);
             }
-        ]);
-        // obtenerPeticiones();
+        };
+        return () => {
+            eventSource.close();
+        };
+
     }, []);
     const obtenerPeticiones = async () => {
         try {
-            const response = await api.get(`/requests`);
+            const response = await api.get(`/request`);
+            console.log(`response : ${JSON.stringify(response.data)}`)
             setSolicitudes(response.data);
         } catch (error) {
             console.error('No hay eventos:', error);
@@ -160,10 +88,15 @@ const ListaPeticiones = () => {
                 filtroFechaInicio === '' || new Date(solicitud.createAt) >= new Date(filtroFechaInicio);
             const fechaFinMatch =
                 filtroFechaFin === '' || new Date(solicitud.createAt) <= new Date(filtroFechaFin);
+            const descripcionMatch =
+                filtroDescripcion === '' ||
+                solicitud.descripcion.toLowerCase().includes(filtroDescripcion.toLowerCase()) ||
+                solicitud.address.toLowerCase().includes(filtroDescripcion.toLowerCase());
 
-            return estadoMatch && fechaInicioMatch && fechaFinMatch;
+            return estadoMatch && fechaInicioMatch && fechaFinMatch && descripcionMatch;
         });
     };
+
 
 
     const handleClickOpen = (item) => {
@@ -187,24 +120,27 @@ const ListaPeticiones = () => {
         setDatosSolicitud(itemData)
         setOpenPaciente(true);
     };
-
+    const handleOpen = (item) => {
+        navigate(`/peticiones/${item.nro}`)
+    }
     const handleClosePaciente = () => {
         setOpenPaciente(false);
     };
     const getStatusColor = (status) => {
         switch (status) {
-            case 'Pendiente':
-                return 'orange';
-            case 'Rechazado':
-                return 'red';
+            case 'pendiente':
+                return '#DCA61F'; // Naranja
+            case 'rechazado':
+                return '#CF402A'; // Rojo
             case 'Aceptado':
-                return 'green';
+                return '#2ACF2A'; // Verde
             case 'Finalizado':
-                return 'grey';
+                return '#698999'; // Gris
             default:
-                return 'white'; // Color predeterminado si no coincide con ninguno de los estados anteriores
+                return '#FFFFFF'; // Color predeterminado si no coincide con ninguno de los estados anteriores (Blanco)
         }
     };
+
     return (
         <PageContainer title="Lista Peticiones" description="this is Sample page">
 
@@ -222,6 +158,12 @@ const ListaPeticiones = () => {
                         <MenuItem value="Aceptado">Aceptado</MenuItem>
                         <MenuItem value="Finalizado">Finalizado</MenuItem>
                     </TextField>
+                    <TextField
+                        label="Buscar por Descripción"
+                        value={filtroDescripcion}
+                        onChange={(e) => setFiltroDescripcion(e.target.value)}
+                        fullWidth
+                    />
                     <TextField
                         label="Filtrar por Fecha Inicio"
                         type="date"
@@ -251,11 +193,14 @@ const ListaPeticiones = () => {
                             }}
                         >
                             <CardContent>
-                                <Typography variant="h5" component="div" style={{ color: 'white' }}>
-                                    ID: {item.nro}
-                                </Typography>
+                                {/* <Typography variant="h5" component="div" style={{ color: 'white' }}>
+                                    Direccion: {item.address}
+                                </Typography> */}
                                 <Typography variant="h5" component="div" style={{ color: 'white' }}>
                                     Estado: {item.status}
+                                </Typography>
+                                <Typography variant="h5" component="div" style={{ color: 'white' }}>
+                                    Descripción : {item.description}
                                 </Typography>
                                 <Typography color="textSecondary" style={{ color: 'white' }}>
                                     Fecha: {new Date(item.createAt).toLocaleString()} {/* Parsea la fecha aquí */}
@@ -263,15 +208,15 @@ const ListaPeticiones = () => {
                             </CardContent>
                             <CardActions>
                                 {/* Botones condicionales */}
-                                {item.status === 'Pendiente' && (
+                                {item.status === 'pendiente' && (
                                     <>
-                                        <Button
+                                        {/* <Button
                                             size="small"
                                             onClick={() => handleClickOpenPaciente(item, item.user)}
                                             style={{ backgroundColor: 'blue', color: 'white' }}
                                         >
                                             Ver datos del solicitante
-                                        </Button>
+                                        </Button> */}
                                         <Button
                                             size="small"
                                             onClick={() => handleClickOpen(item)}
@@ -284,13 +229,13 @@ const ListaPeticiones = () => {
                                 {item.status === 'Aceptado' && (
                                     <>
                                         {/* <Link component={RouterLink} to={`/actualizaciones/${item.id}`}>*/}
-                                        <Button
+                                        {/* <Button
                                             size="small"
                                             onClick={() => handleClickOpenPaciente(item, item.user)}
                                             style={{ backgroundColor: 'blue', color: 'white' }}
                                         >
                                             Ver datos del solicitante
-                                        </Button>
+                                        </Button> */}
                                         <Button
                                             size="small"
                                             onClick={() => handleClickOpenRastreo(item.nro)}
@@ -301,18 +246,19 @@ const ListaPeticiones = () => {
                                         {/*</Link> */}
                                     </>
                                 )}
-                                {item.status === 'Finalizado' && (
+                                {item.status === 'finalizado' && (
                                     <>
                                         {/* <Link component={RouterLink} to={`/actualizaciones/${item.id}`}>*/}
-                                        <Button
+                                        {/* <Button
                                             size="small"
                                             onClick={() => handleClickOpenPaciente(item, item.user)}
                                             style={{ backgroundColor: 'blue', color: 'white' }}
                                         >
                                             Ver datos del solicitante
-                                        </Button>
+                                        </Button> */}
                                         <Button
                                             size="small"
+                                            onClick={() => handleOpen(item)}
                                             style={{ backgroundColor: 'purple', color: 'white' }}
                                         >
                                             Mostrar la Trayectoria
@@ -320,22 +266,16 @@ const ListaPeticiones = () => {
                                         {/*</Link> */}
                                     </>
                                 )}
-                                {item.status === 'Rechazado' && (
+                                {item.status === 'rechazado' && (
                                     <>
                                         {/* <Link component={RouterLink} to={`/actualizaciones/${item.id}`}>*/}
-                                        <Button
+                                        {/* <Button
                                             size="small"
                                             onClick={() => handleClickOpenPaciente(item, item.user)}
                                             style={{ backgroundColor: 'blue', color: 'white' }}
                                         >
                                             Ver datos del solicitante
-                                        </Button>
-                                        <Button
-                                            size="small"
-                                            style={{ backgroundColor: 'purple', color: 'white' }}
-                                        >
-                                            Mostrar Motivos del rechazo
-                                        </Button>
+                                        </Button> */}
                                         {/*</Link> */}
                                     </>
                                 )}
@@ -371,7 +311,7 @@ const ListaPeticiones = () => {
                                 </DialogContentText>
                             </DialogContent>
                             <img
-                                src={`http://localhost:3001/${datosSolicitud.photo}`}
+                                src={`${datosSolicitud.photo}`}
                                 alt={`Foto de ${datosUsuario.fullName}`}
                                 style={{ maxWidth: '100%', height: 'auto' }}
                             />

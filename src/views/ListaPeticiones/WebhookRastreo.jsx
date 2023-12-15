@@ -2,17 +2,18 @@ import React, { useEffect, useState } from 'react';
 import { Typography } from '@mui/material';
 import PageContainer from 'src/components/container/PageContainer';
 import DashboardCard from '../../components/shared/DashboardCard';
-import { withScriptjs, withGoogleMap, GoogleMap, Marker, Circle, InfoWindow } from 'react-google-maps';
+import { withScriptjs, withGoogleMap, GoogleMap, Marker, DirectionsRenderer, InfoWindow } from 'react-google-maps';
 
 const WebhookRastreo = () => {
     const [ubicacion, setUbicacion] = useState({
-        latUser: -17.776074, 
+        latUser: -17.776074,
         lngUser: -63.191765,
-        latScene: -17.777394731326236, 
+        latScene: -17.777394731326236,
         lngScene: -63.18569178130802,
         latAmb: -17.785183,
-        lngAmb:  -63.197812,
+        lngAmb: -63.197812,
     });
+    const [directions, setDirections] = useState(null);
 
     useEffect(() => {
         // Configura la conexión para recibir actualizaciones
@@ -24,8 +25,8 @@ const WebhookRastreo = () => {
                 setUbicacion({
                     latUser: data.message.latUser,
                     lngUser: data.message.lngUser,
-                    latScene: data.message.latScene,
-                    lngScene: data.message.lngScene,
+                    latScene: data.message.lat_scene,
+                    lngScene: data.message.lng_scene,
                     latAmb: data.message.latAmb,
                     lngAmb: data.message.lngAmb,
                 });
@@ -34,7 +35,6 @@ const WebhookRastreo = () => {
                 console.error('Error al parsear datos del webhook:', error);
             }
         };
-
         return () => {
             eventSource.close();
         };
@@ -47,6 +47,7 @@ const WebhookRastreo = () => {
                 <Marker position={{ lat: ubicacion.latUser, lng: ubicacion.lngUser }} label="Usuario Afectado" />
                 <Marker position={{ lat: ubicacion.latScene, lng: ubicacion.lngScene }} label="Hospital destino intencional" />
                 <Marker position={{ lat: ubicacion.latAmb, lng: ubicacion.lngAmb }} label="Ambulancia" />
+                {/* {directions && <DirectionsRenderer directions={directions} />} */}
             </GoogleMap>
         ))
     );
